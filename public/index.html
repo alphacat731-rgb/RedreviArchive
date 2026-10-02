@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="Dedicated RedreviArchive viewer for @redrevi_VRC">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <title>RedreviArchive</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">RA</div>
+        <div>
+          <strong>RedreviArchive</strong>
+          <span>Dedicated archive</span>
+        </div>
+      </div>
+
+      <div class="profile-mini" id="sidebarProfile">
+        <div class="avatar avatar-lg skeleton-avatar"></div>
+        <div class="profile-mini-copy">
+          <strong>@redrevi_VRC</strong>
+          <span>Loading profile…</span>
+        </div>
+        <span class="verified-dot">✓</span>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="home"><span>⌂</span>Home</button>
+        <button class="nav-item" data-view="media"><span>▦</span>Media Gallery</button>
+        <button class="nav-item" data-view="videos"><span>▶</span>Video Downloads</button>
+        <button class="nav-item" data-view="saved"><span>★</span>Saved Posts</button>
+        <button class="nav-item" data-view="settings"><span>⚙</span>Settings</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sync-pill" id="syncPill">
+          <span class="status-dot"></span>
+          <span id="syncStatus">Checking archive…</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">ARCHIVE / REDREVI</div>
+          <h1 id="pageTitle">Home</h1>
+        </div>
+        <div class="top-actions">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="Search archived posts…">
+          </label>
+          <button class="icon-button" id="refreshButton" title="Sync with X">↻</button>
+          <button class="profile-button" id="settingsButton" title="Settings">
+            <span class="avatar avatar-sm" id="topAvatar"></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="profile-hero panel">
+          <div class="profile-hero-main">
+            <img class="avatar avatar-xl" id="heroAvatar" alt="@redrevi_VRC avatar">
+            <div class="hero-copy">
+              <div class="name-row">
+                <h2 id="heroName">Redrevi</h2>
+                <span class="verified-badge">✓</span>
+              </div>
+              <p class="handle">@redrevi_VRC</p>
+              <p class="description" id="heroDescription">Dedicated archive feed. No account switching, no external X UI.</p>
+            </div>
+          </div>
+          <div class="hero-stats" id="heroStats">
+            <div><strong id="postCount">0</strong><span>archived posts</span></div>
+            <div><strong id="imageCount">0</strong><span>images</span></div>
+            <div><strong id="videoCount">0</strong><span>videos</span></div>
+            <div><strong id="lastSyncText">—</strong><span>last sync</span></div>
+          </div>
+        </div>
+
+        <div id="viewHome" class="view">
+          <div class="section-heading">
+            <div>
+              <h3>Latest posts</h3>
+              <p>Reverse chronological archive from @redrevi_VRC.</p>
+            </div>
+            <button class="secondary-button" id="clearSearchButton" hidden>Clear search</button>
+          </div>
+          <div id="feed" class="feed"></div>
+          <button class="load-more" id="loadMoreButton" hidden>Load older posts</button>
+        </div>
+
+        <div id="viewMedia" class="view hidden">
+          <div class="section-heading">
+            <div>
+              <h3>Media Gallery</h3>
+              <p>Images and previews preserved by the archive.</p>
+            </div>
+          </div>
+          <div id="gallery" class="gallery"></div>
+        </div>
+
+        <div id="viewVideos" class="view hidden">
+          <div class="section-heading">
+            <div>
+              <h3>Video Downloads</h3>
+              <p>Downloadable video variants served by the archive server.</p>
+            </div>
+          </div>
+          <div id="downloads" class="downloads-list"></div>
+        </div>
+
+        <div id="viewSaved" class="view hidden">
+          <div class="section-heading">
+            <div>
+              <h3>Saved Posts</h3>
+              <p>Saved locally in this browser or installed app.</p>
+            </div>
+          </div>
+          <div id="savedFeed" class="feed"></div>
+        </div>
+
+        <div id="viewSettings" class="view hidden">
+          <div class="section-heading">
+            <div>
+              <h3>Settings</h3>
+              <p>Server and archive diagnostics.</p>
+            </div>
+          </div>
+          <div class="settings-grid">
+            <div class="panel settings-card">
+              <span class="setting-label">Dedicated source</span>
+              <strong>@redrevi_VRC</strong>
+              <small>This build is intentionally locked to one account.</small>
+            </div>
+            <div class="panel settings-card">
+              <span class="setting-label">X API</span>
+              <strong id="apiState">Checking…</strong>
+              <small>The Bearer Token stays on the server and is never shipped to the client.</small>
+            </div>
+            <div class="panel settings-card">
+              <span class="setting-label">Archive size</span>
+              <strong id="archiveSize">0 posts</strong>
+              <small>Stored locally in <code>data/archive.json</code>.</small>
+            </div>
+          </div>
+          <div class="panel danger-card">
+            <div>
+              <strong>Local browser data</strong>
+              <p>Remove locally saved posts from this device. This does not delete the server archive.</p>
+            </div>
+            <button class="secondary-button danger" id="clearSavedButton">Clear saved posts</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

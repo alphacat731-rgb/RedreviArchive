@@ -1,0 +1,14 @@
+{
+  "name": "redrevi-archive",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lightweight, dedicated archive viewer for the public X account @redrevi_VRC.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
