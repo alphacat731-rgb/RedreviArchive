@@ -77,9 +77,7 @@ async function readArchive() {
 }
 
 async function writeArchive(archive) {
-  const tmp = DATA_FILE + ".tmp";
-  await fs.writeFile(tmp, JSON.stringify(archive, null, 2));
-  await fs.rename(tmp, DATA_FILE);
+  await fs.writeFile(DATA_FILE, JSON.stringify(archive, null, 2));
 }
 
 function json(res, status, payload) {
@@ -310,9 +308,18 @@ async function handleApi(req, res, url) {
     if (mode === "media") posts = posts.filter(p => p.media?.length);
     if (mode === "videos") posts = posts.filter(p => p.media?.some(m => m.type === "video"));
 
+    const stats = archive.posts.reduce((acc, post) => {
+      for (const media of post.media || []) {
+        if (media.type === "image") acc.images += 1;
+        if (media.type === "video") acc.videos += 1;
+      }
+      return acc;
+    }, { images: 0, videos: 0 });
+
     return json(res, 200, {
       profile: archive.profile,
       lastSync: archive.lastSync,
+      stats,
       posts: posts.slice(offset, offset + limit),
       pagination: {
         offset,
