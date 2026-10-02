@@ -14,7 +14,8 @@ const HOST = process.env.HOST || "0.0.0.0";
 const X_BEARER_TOKEN = process.env.X_BEARER_TOKEN || "";
 const X_API_BASE = "https://api.x.com/2";
 const USERNAME = "redrevi_VRC";
-const MAX_PAGES = Math.min(32, Math.max(1, Number(process.env.SYNC_MAX_PAGES || 32)));
+const MAX_PAGES = Math.min(100, Math.max(1, Number(process.env.SYNC_MAX_PAGES || 32)));
+const FULL_ARCHIVE = String(process.env.X_FULL_ARCHIVE || "false").toLowerCase() === "true";
 
 const DATA_DIR = path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "archive.json");
@@ -202,17 +203,29 @@ async function syncArchive() {
 
   do {
     const params = new URLSearchParams({
-      max_results: "100",
+      max_results: FULL_ARCHIVE ? "500" : "100",
       "tweet.fields": "created_at,public_metrics,attachments,conversation_id,author_id,entities,reply_settings",
       expansions: "attachments.media_keys,author_id",
-      "media.fields": "type,url,preview_image_url,width,height,duration_ms,variants,alt_text",
-      exclude: "retweets,replies"
+      "media.fields": "type,url,preview_image_url,width,height,duration_ms,variants,alt_text"
     });
+
+    let endpoint;
+    if (FULL_ARCHIVE) {
+      params.set("query", `from:${USERNAME} -is:retweet -is:reply`);
+      endpoint = `/tweets/search/all?${params.toString()}`;
+    } else {
+      params.set("exclude", "retweets,replies");
+      endpoint = `/users/${user.id}/tweets?${params.toString()}`;
+    }
 
     if (newestId) params.set("since_id", newestId);
     if (paginationToken) params.set("pagination_token", paginationToken);
 
-    const body = await xRequest(`/users/${user.id}/tweets?${params.toString()}`);
+    const finalEndpoint = FULL_ARCHIVE
+      ? `/tweets/search/all?${params.toString()}`
+      : `/users/${user.id}/tweets?${params.toString()}`;
+
+    const body = await xRequest(finalEndpoint);
     for (const post of body?.data || []) {
       fetched.set(post.id, normalisePost(post, body.includes));
     }
@@ -220,7 +233,7 @@ async function syncArchive() {
     paginationToken = body?.meta?.next_token || "";
     pages += 1;
 
-    // Incremental sync only needs the first page. Initial sync can walk the full timeline.
+    // Incremental sync needs only one page; initial sync walks the configured number of pages.
     if (newestId) break;
   } while (paginationToken && pages < MAX_PAGES);
 
@@ -239,8 +252,9 @@ async function syncArchive() {
     verified: Boolean(user.verified),
     public_metrics: user.public_metrics || {}
   };
-  existing.posts = posts.slice(0, 3200);
+  existing.posts = FULL_ARCHIVE ? posts : posts.slice(0, 3200);
   existing.lastSync = new Date().toISOString();
+  existing.archiveMode = FULL_ARCHIVE ? "full-archive" : "user-timeline";
 
   await writeArchive(existing);
 
@@ -249,7 +263,8 @@ async function syncArchive() {
     fetched: fetched.size,
     total: existing.posts.length,
     lastSync: existing.lastSync,
-    pages
+    pages,
+    archiveMode: existing.archiveMode
   };
 }
 
@@ -292,6 +307,8 @@ async function handleApi(req, res, url) {
       ok: true,
       xConfigured: Boolean(bearerToken),
       username: USERNAME,
+      archiveMode: (await readArchive()).archiveMode || (FULL_ARCHIVE ? "full-archive" : "user-timeline"),
+      fullArchiveConfigured: FULL_ARCHIVE,
       lastSync: (await readArchive()).lastSync
     });
   }
