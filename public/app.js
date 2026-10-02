@@ -181,18 +181,10 @@ function updateProfile(profile, lastSync) {
   `;
 }
 
-function updateStats(posts, total, lastSync) {
-  let images = 0;
-  let videos = 0;
-  for (const post of posts) {
-    for (const media of post.media || []) {
-      if (media.type === "image") images++;
-      if (media.type === "video") videos++;
-    }
-  }
+function updateStats(stats, total, lastSync) {
   $("postCount").textContent = compactNumber(total);
-  $("imageCount").textContent = compactNumber(images);
-  $("videoCount").textContent = compactNumber(videos);
+  $("imageCount").textContent = compactNumber(stats?.images || 0);
+  $("videoCount").textContent = compactNumber(stats?.videos || 0);
   $("archiveSize").textContent = `${compactNumber(total)} posts`;
   $("lastSyncText").textContent = lastSync ? relativeDate(lastSync) : "—";
 }
@@ -214,7 +206,7 @@ async function loadPosts(reset = true) {
   state.offset += data.posts.length;
 
   updateProfile(data.profile, data.lastSync);
-  updateStats(state.posts, state.total, data.lastSync);
+  updateStats(data.stats, state.total, data.lastSync);
   renderFeed(state.posts);
   $("loadMoreButton").hidden = !data.pagination.hasMore;
   $("clearSearchButton").hidden = !state.query;
