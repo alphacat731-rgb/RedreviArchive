@@ -23,7 +23,7 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 function loadDotEnv(file) {
   return fs.readFile(file, "utf8")
     .then(text => {
-      for (const raw of text.split(/\\r?\\n/)) {
+      for (const raw of text.split(/\r?\n/)) {
         const line = raw.trim();
         if (!line || line.startsWith("#")) continue;
         const eq = line.indexOf("=");
