@@ -21,7 +21,7 @@ The application is intentionally locked to a single public X account. It does no
 - An X developer project/app and a Bearer Token with access to the needed X API endpoints.
 - Network access from the machine running the archive server.
 
-X currently documents the user-posts timeline at `GET /2/users/:id/tweets`, including pagination and up to 3,200 of a user's most recent posts. X also documents pay-per-use pricing for the API. See the official docs before enabling regular syncs.
+X currently documents the user-posts timeline at `GET /2/users/:id/tweets`, including pagination and up to 3,200 of a user's most recent posts. For a genuinely complete archive, set `X_FULL_ARCHIVE=true` when your API access includes Full-Archive Search; X documents that endpoint as available to pay-per-use and Enterprise customers. Full-Archive Search uses the fixed query `from:redrevi_VRC -is:retweet -is:reply`. See the official X API docs before enabling regular syncs.
 
 ## Setup
 
@@ -34,6 +34,17 @@ npm start
 ```
 
 4. Open `http://localhost:3000`.
+
+### Full archive mode
+
+By default the project uses the user-posts timeline and caps the local archive at 3,200 posts. To use the complete X archive instead, set:
+
+```env
+X_FULL_ARCHIVE=true
+SYNC_MAX_PAGES=32
+```
+
+The full-archive endpoint can return up to 500 posts per request. Keep the page count sensible because X's current API is pay-per-use.
 
 ### Raspberry Pi 3B
 
